@@ -143,6 +143,7 @@ exports.promoPages = onCall({ region: REGION }, async (req) => {
   const s = (await db.doc(`orgs/${orgId}/_secrets/meta`).get()).data();
   return { pages: (s?.pages || []).map((p) => ({ id: p.id, name: p.name, ig: !!p.ig })) };
 });
+
 exports.promoGenerate = onCall({ region: REGION, timeoutSeconds: 150, secrets: SECRETS }, async (req) => {
   needAdmin(req);
   const count = Math.min(14, Math.max(1, Math.round(Number(req.data?.count) || 7)));
