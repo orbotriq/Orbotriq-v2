@@ -1,0 +1,9 @@
+{
+  "functions": [{ "source": "functions", "codebase": "default" }],
+  "firestore": { "rules": "legacy-v1/firestore.rules", "indexes": "legacy-v1/firestore.indexes.json" },
+  "hosting": {
+    "public": "apps/web/out",
+    "ignore": ["firebase.json", "**/.*", "**/node_modules/**"],
+    "rewrites": [{ "source": "**", "destination": "/index.html" }]
+  }
+}

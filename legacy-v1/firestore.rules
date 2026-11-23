@@ -1,0 +1,99 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ---------- Helpers (custom claims are set by Cloud Functions) ----------
+    function signedIn() { return request.auth != null; }
+    function isPlatformAdmin() { return signedIn() && request.auth.token.get('platformAdmin', false) == true; }
+    function inOrg(orgId) { return signedIn() && request.auth.token.get('orgId', '') == orgId; }
+    function roleIs(roles) { return request.auth.token.get('role', '') in roles; }
+    function isOwner(orgId)  { return inOrg(orgId) && roleIs(['owner']); }
+    function isAdmin(orgId)  { return inOrg(orgId) && roleIs(['owner', 'admin']); }
+    function isStaff(orgId)  { return inOrg(orgId) && roleIs(['owner', 'admin', 'staff']); }
+    function isViewer(orgId) { return inOrg(orgId) && roleIs(['owner', 'admin', 'staff', 'viewer']); }
+    function canRead(orgId)  { return isViewer(orgId) || isPlatformAdmin(); }
+
+    // ---------- Public website content (edited only by the super admin) ----------
+    match /plans/{planId} { allow read: if true; allow write: if isPlatformAdmin(); }
+    match /site/{docId}   { allow read: if true; allow write: if isPlatformAdmin(); }
+    match /platform/{docId=**} { allow read, write: if isPlatformAdmin(); }
+
+    // Demo and contact requests from the public website
+    match /leads/{leadId} {
+      allow create: if request.resource.data.keys().hasOnly(['name', 'company', 'email', 'phone', 'message', 'source', 'createdAt'])
+        && request.resource.data.name is string && request.resource.data.name.size() > 0 && request.resource.data.name.size() <= 120
+        && request.resource.data.email is string && request.resource.data.email.size() <= 160
+        && (!('company' in request.resource.data) || request.resource.data.company.size() <= 160)
+        && (!('phone' in request.resource.data) || request.resource.data.phone.size() <= 40)
+        && (!('message' in request.resource.data) || request.resource.data.message.size() <= 2000);
+      allow read, update, delete: if isPlatformAdmin();
+    }
+
+    // ---------- Users ----------
+    match /users/{uid} {
+      allow read: if signedIn() && (request.auth.uid == uid || isPlatformAdmin());
+      allow update: if signedIn() && request.auth.uid == uid
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['displayName', 'photoURL']);
+      allow create, delete: if false;
+    }
+
+    // Super admin billing list across every organisation (collection group query)
+    match /{path=**}/invoices/{invId} { allow read: if isPlatformAdmin(); }
+
+    // ---------- Organisations (tenants) ----------
+    match /orgs/{orgId} {
+      allow read: if canRead(orgId);
+      allow update: if isAdmin(orgId)
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['name', 'logoUrl', 'brandColor']);
+      allow create, delete: if false;
+
+      match /members/{uid} {
+        allow read: if isAdmin(orgId) || isPlatformAdmin() || (inOrg(orgId) && request.auth.uid == uid);
+        allow write: if false;
+      }
+      match /invites/{inviteId} { allow read: if isAdmin(orgId); allow write: if false; }
+
+      match /institutions/{instId} {
+        allow read: if canRead(orgId);
+        allow update: if isAdmin(orgId);
+        allow create, delete: if false;
+      }
+      match /connections/{connId} { allow read: if isAdmin(orgId) || isPlatformAdmin(); allow write: if false; }
+      match /_secrets/{docId} { allow read, write: if false; }
+
+      match /metrics/{docId=**} { allow read: if canRead(orgId); allow write: if false; }
+      match /ads/{docId=**}     { allow read: if canRead(orgId); allow write: if false; }
+      match /reports/{docId=**} { allow read: if canRead(orgId); allow write: if false; }
+      match /scheduledPosts/{postId} { allow read: if canRead(orgId); allow write: if false; }
+
+      match /seoKeywords/{kwId} {
+        allow read: if canRead(orgId);
+        allow create, update, delete: if isStaff(orgId);
+      }
+      match /geoPrompts/{pid} {
+        allow read: if canRead(orgId);
+        allow create: if isStaff(orgId) && request.resource.data.prompt is string && request.resource.data.prompt.size() >= 5 && request.resource.data.prompt.size() <= 200;
+        allow delete: if isStaff(orgId);
+        allow update: if false;
+      }
+      // Smart alerts (created by functions; staff can mark them read)
+      match /alerts/{alertId} {
+        allow read: if canRead(orgId);
+        allow update: if isStaff(orgId) && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['read']);
+        allow create, delete: if false;
+      }
+      // Google reviews and local posts (synced and written by functions)
+      match /reviews/{rid} { allow read: if canRead(orgId); allow write: if false; }
+      match /gbpPosts/{pid} { allow read: if canRead(orgId); allow write: if false; }
+      // AI copilot history (written by functions)
+      match /copilot/{cid} { allow read: if canRead(orgId); allow write: if false; }
+      // Alert and report preferences
+      match /settings/{sid} { allow read: if canRead(orgId); allow write: if isAdmin(orgId); }
+
+      match /billing/{docId=**} { allow read: if isOwner(orgId) || isPlatformAdmin(); allow write: if false; }
+      // GST invoices: written only by Cloud Functions, visible to the workspace owner and the super admin
+      match /invoices/{invId} { allow read: if isOwner(orgId) || isPlatformAdmin(); allow write: if false; }
+      match /auditLogs/{logId} { allow read: if isAdmin(orgId) || isPlatformAdmin(); allow write: if false; }
+    }
+  }
+}

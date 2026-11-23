@@ -1,0 +1,3 @@
+import { AppShell } from "@/components/app-shell";
+export const metadata={title:"Super Admin"};
+export default function AdminPage(){return <AppShell active="/admin"><div className="content"><div className="eyebrow">Platform administration</div><h1>Super Admin</h1><p className="sub">Administrative controls will be exposed only after verified platform-admin authorization is implemented.</p><div className="card" style={{marginTop:24}}>Protected admin route foundation <span className="pill" style={{marginLeft:10}}>Not enabled</span><p className="sub">This page is not yet an authorization boundary. Do not deploy it as an operational admin console.</p></div></div></AppShell>}

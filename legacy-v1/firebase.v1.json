@@ -1,0 +1,20 @@
+{
+  "firestore": { "rules": "firestore.rules", "indexes": "firestore.indexes.json" },
+  "functions": [{ "source": "functions", "codebase": "default" }],
+  "hosting": {
+    "site": "vaanio-app",
+    "public": "web",
+    "cleanUrls": true,
+    "ignore": ["firebase.json", "**/.*", "**/node_modules/**"],
+    "rewrites": [
+      { "source": "/oauth/callback", "function": { "functionId": "oauthCallback", "region": "asia-south1" } }
+    ],
+    "headers": [
+      { "source": "**", "headers": [
+        { "key": "X-Content-Type-Options", "value": "nosniff" },
+        { "key": "X-Frame-Options", "value": "SAMEORIGIN" },
+        { "key": "Referrer-Policy", "value": "strict-origin-when-cross-origin" } ] },
+      { "source": "**/*.@(svg|png|css)", "headers": [{ "key": "Cache-Control", "value": "public,max-age=3600" }] }
+    ]
+  }
+}
