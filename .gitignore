@@ -11,3 +11,11 @@ yarn-debug.log*
 yarn-error.log*
 firebase-debug.log*
 .firebase/
+
+# Firebase local emulator artifacts
+firebase-debug*.log
+firestore-debug*.log
+ui-debug*.log
+database-debug*.log
+.firebase/
+.emulator-data/

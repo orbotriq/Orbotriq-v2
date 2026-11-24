@@ -1,8 +1,11 @@
-import "server-only";
+﻿import "server-only";
 import { cookies } from "next/headers";
 import { adminAuth } from "@/lib/firebase/admin";
 
-const COOKIE_NAME = "__session";
+const COOKIE_NAME =
+  process.env.ORBOTRIQ_FIREBASE_MODE === "emulator"
+    ? "orbotriq_emulator_session"
+    : "__session";
 const MAX_AGE_MS = 5 * 24 * 60 * 60 * 1000;
 
 export async function verifySession() {
@@ -17,3 +20,4 @@ export async function verifySession() {
 }
 
 export { COOKIE_NAME, MAX_AGE_MS };
+
