@@ -45,7 +45,8 @@ export async function updateSubscription(orgId:string,input:unknown){
     if(d.isDemo===true||d.plan==="demo"||!["active","trialing","expired","suspended"].includes(d.status)) return failure("Subscription requires manual review.",409);
     // Trial conversion and activation are deliberately separate operations.
     if(d.plan==="trial"||d.status==="trialing") return failure("Trial conversion requires a separate activation workflow.",409);
-    const b=validAllowance(limits?.brands),g=validAllowance(limits?.geoRuns),used=validAllowance(d.institutionCount),geo=monthlyUsage(d.usage,new Date().toISOString().slice(0,7));
+    const same=d.plan===v.planId;
+    const b=validAllowance(same?d.limits?.institutions:limits?.brands),g=validAllowance(same?d.limits?.geoRuns:limits?.geoRuns),used=validAllowance(d.institutionCount),geo=monthlyUsage(d.usage,new Date().toISOString().slice(0,7));
     if(b===null||b<1||b>10000||g===null||g>1000000||used===null||geo===null||!map(d.limits)) return failure("Invalid plan or usage data.",409);
     if(b<used||g<geo) return failure("Plan allowance is below current usage.");
     const updates:Record<string,string|number|Timestamp>={};

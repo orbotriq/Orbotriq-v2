@@ -19,7 +19,7 @@ const schema = z.object({
   notes: z.string().trim().max(500),
 }).strict();
 
-export async function createOrganization(input: unknown) {
+export async function createOrganization(input: unknown, demo = false) {
   const actor = await requireAdminWrite();
 
   const parsed = schema.safeParse(input);
@@ -90,16 +90,16 @@ export async function createOrganization(input: unknown) {
       name,
       ownerUid: uid,
       ownerEmail,
-      plan: "trial",
-      status: "trialing",
-      isDemo: false,
+      plan: demo ? "demo" : "trial",
+      status: demo ? "demo" : "trialing",
+      isDemo: demo,
       trialEndsAt: Timestamp.fromMillis(
         Date.now() + trialDays * 86400000
       ),
       paidUntil: null,
       limits: {
-        institutions: 2,
-        geoRuns: 5,
+        institutions: demo ? 5 : 2,
+        geoRuns: demo ? 50 : 5,
       },
       usage: {},
       institutionCount: 0,
@@ -133,7 +133,7 @@ export async function createOrganization(input: unknown) {
     batch.create(
       orgRef.collection("auditLogs").doc(),
       {
-        action: "org.created_by_admin",
+        action: demo ? "org.demo_created" : "org.created_by_admin",
         by: actor.uid,
         at: FieldValue.serverTimestamp(),
       }

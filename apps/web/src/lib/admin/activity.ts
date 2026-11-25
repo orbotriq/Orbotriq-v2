@@ -1,4 +1,4 @@
-﻿import "server-only";
+import "server-only";
 import { FieldPath } from "firebase-admin/firestore";
 import { adminDb } from "@/lib/firebase/admin";
 import { requirePlatformAdmin } from "@/lib/auth/guard";
@@ -6,6 +6,10 @@ import { requirePlatformAdmin } from "@/lib/auth/guard";
 const PAGE_SIZE = 25;
 
 const eventLabels: Record<string, string> = {
+  "org.suspend": "Organization suspended",
+  "org.reactivate": "Organization reactivated",
+  "org.extend-demo": "Demo extended",
+  "org.expire-demo": "Demo expired",
   "org.created": "Organization created",
   "org.created_by_admin": "Organization created by admin",
   "org.demo_created": "Demo organization created",

@@ -1,4 +1,4 @@
-﻿import Link from "next/link";
+import Link from "next/link";
 import { Plus } from "lucide-react";
 import { AppShell } from "@/components/app-shell";
 import { OrganizationsTable } from "@/components/organizations-table";
@@ -41,6 +41,7 @@ export default async function OrganizationsPage() {
         )}
       </div>
 
+      {canCreate && <Link className="org-members-button" href="/admin/organizations/demo">Create Demo</Link>}
       <OrganizationsTable organizations={organizations} />
 
       <p className="sub" style={{ marginTop: 20 }}>

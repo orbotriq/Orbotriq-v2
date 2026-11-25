@@ -1,11 +1,11 @@
-﻿"use client";
+"use client";
 
 import Link from "next/link";
 import { useRef, useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import { Building2, ShieldCheck, Plus } from "lucide-react";
 
-export function CreateOrganizationForm() {
+export function CreateOrganizationForm({demo=false}:{demo?:boolean}) {
   const router = useRouter();
 
   const [name, setName] = useState("");
@@ -28,7 +28,7 @@ export function CreateOrganizationForm() {
 
     try {
       const response = await fetch(
-        "/api/admin/organizations",
+        demo ? "/api/admin/organizations/demo" : "/api/admin/organizations",
         {
           method: "POST",
           headers: {
