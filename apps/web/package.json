@@ -14,7 +14,8 @@
     "test:create-organization": "node scripts/test-create-organization.mjs",
     "test:update-organization": "node scripts/test-update-organization.mjs",
     "test:update-integration": "node scripts/test-update-integration.mjs",
-    "test:admin-authorization": "node scripts/test-admin-authorization.mjs"
+    "test:admin-authorization": "node scripts/test-admin-authorization.mjs",
+    "seed:plans": "node scripts/seed-plans-emulator.mjs"
   },
   "dependencies": {
     "@tailwindcss/postcss": "^4.0.14",

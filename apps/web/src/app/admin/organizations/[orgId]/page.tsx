@@ -109,6 +109,7 @@ export default async function OrganizationDetailsPage({
       </div>
 
       <div style={{ marginTop: 24, marginBottom: 24, display: "flex", flexWrap: "wrap", gap: 12 }}>
+        <Link href={`/admin/organizations/${encodeURIComponent(org.id)}/subscription`} className="org-members-button">Subscription and Usage</Link>
         {isAdminWriteEnabled() && (
           <Link
             href={`/admin/organizations/${encodeURIComponent(org.id)}/edit`}
