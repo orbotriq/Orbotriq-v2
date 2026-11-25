@@ -1,4 +1,5 @@
-﻿import Link from "next/link";
+import { isAdminWriteEnabled } from "@/lib/admin/write-guard";
+import Link from "next/link";
 import { notFound } from "next/navigation";
 import {
   ArrowLeft,
@@ -107,7 +108,15 @@ export default async function OrganizationDetailsPage({
         ))}
       </div>
 
-      <div style={{ marginTop: 24, marginBottom: 24 }}>
+      <div style={{ marginTop: 24, marginBottom: 24, display: "flex", flexWrap: "wrap", gap: 12 }}>
+        {isAdminWriteEnabled() && (
+          <Link
+            href={`/admin/organizations/${encodeURIComponent(org.id)}/edit`}
+            className="org-members-button"
+          >
+            Edit Organization
+          </Link>
+        )}
         <Link
           href={`/admin/organizations/${encodeURIComponent(org.id)}/members`}
           className="org-members-button"
@@ -118,7 +127,7 @@ export default async function OrganizationDetailsPage({
         <Link
           href={`/admin/organizations/${encodeURIComponent(org.id)}/activity`}
           className="org-members-button"
-          style={{ marginLeft: 12 }}
+
         >
           View Activity
         </Link>
@@ -149,11 +158,9 @@ export default async function OrganizationDetailsPage({
       </div>
 
       <p className="sub" style={{ marginTop: 24 }}>
-        Read-only organization profile.
-        No customer records are modified.
+        {isAdminWriteEnabled() ? "Local emulator organization profile." : "Read-only organization profile."}
+        {isAdminWriteEnabled() ? "Administrative editing is enabled for test records only." : "No customer records are modified."}
       </p>
     </AppShell>
   );
 }
-
-
