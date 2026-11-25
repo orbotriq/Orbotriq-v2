@@ -744,3 +744,121 @@ h1 { font-size:28px; margin:8px 0; }
   gap: 8px;
 }
 
+
+/* Organization creation */
+
+.org-page-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.org-create-form {
+  max-width: 900px;
+  margin-top: 24px;
+}
+
+.org-create-form fieldset {
+  border: 0;
+  padding: 0;
+  margin: 0;
+  min-width: 0;
+  display: grid;
+  gap: 20px;
+}
+
+.org-create-form .card {
+  padding: 24px;
+  display: grid;
+  gap: 18px;
+}
+
+.org-create-form h2 {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 18px;
+  margin: 0;
+}
+
+.org-create-form h2 svg {
+  color: var(--cyan);
+}
+
+.org-create-form label {
+  display: grid;
+  gap: 8px;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.org-create-form input,
+.org-create-form textarea {
+  width: 100%;
+  box-sizing: border-box;
+  background: var(--bg);
+  border: 1px solid var(--line);
+  color: var(--text);
+  border-radius: 8px;
+  padding: 12px 14px;
+  font: inherit;
+}
+
+.org-create-form input:focus,
+.org-create-form textarea:focus {
+  outline: 1px solid var(--cyan);
+  border-color: var(--cyan);
+}
+
+.org-create-form input[readonly] {
+  color: var(--muted);
+}
+
+.org-create-form textarea {
+  resize: vertical;
+}
+
+.org-create-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+}
+
+.org-create-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 16px;
+}
+
+.org-create-actions button {
+  cursor: pointer;
+  font: inherit;
+}
+
+.org-create-actions button:disabled {
+  opacity: 0.5;
+  cursor: wait;
+}
+
+.org-create-error {
+  border: 1px solid #7f1d1d;
+  background: rgba(239, 68, 68, 0.08);
+  color: #fca5a5;
+  padding: 14px;
+  border-radius: 8px;
+}
+
+@media (max-width: 640px) {
+  .org-create-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .org-create-form .card {
+    padding: 16px;
+  }
+}
+

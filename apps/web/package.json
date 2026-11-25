@@ -9,7 +9,9 @@
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
     "dev:emulator": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/dev-emulator.ps1",
-    "seed:emulator": "node scripts/seed-emulator.mjs"
+    "seed:emulator": "node scripts/seed-emulator.mjs",
+    "test:write-guard": "node scripts/test-write-guard.mjs",
+    "test:create-organization": "node scripts/test-create-organization.mjs"
   },
   "dependencies": {
     "@tailwindcss/postcss": "^4.0.14",
