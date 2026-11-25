@@ -1,4 +1,4 @@
-﻿import Link from "next/link";
+import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
 import { AppShell } from "@/components/app-shell";
@@ -41,6 +41,7 @@ export default async function OrganizationMembersPage({
         {result.organizationName} - Workspace users and permissions
       </p>
 
+      <Link href="/admin/users" className="org-members-button">Global user directory</Link>
       <MembersTable members={result.members} />
 
       <div className="card" style={{ marginTop: 24 }}>
