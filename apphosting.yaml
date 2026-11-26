@@ -1,6 +1,5 @@
-# Firebase App Hosting backend configuration.
-# Create/link the App Hosting backend in Firebase Console before deployment.
-
+# Phase 16E1: cloud Firebase access deliberately disabled.
+# Do not deploy this configuration. Replace only after isolated staging review.
 runConfig:
   cpu: 1
   memoryMiB: 512
@@ -8,8 +7,13 @@ runConfig:
   maxInstances: 10
 
 env:
-  - variable: NEXT_PUBLIC_FIREBASE_PROJECT_ID
-    value: vaanio-app
+  - variable: ORBOTRIQ_FIREBASE_MODE
+    value: disabled
+    availability:
+      - BUILD
+      - RUNTIME
+  - variable: NEXT_PUBLIC_FIREBASE_MODE
+    value: disabled
     availability:
       - BUILD
       - RUNTIME

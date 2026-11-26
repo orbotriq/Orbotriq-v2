@@ -1,5 +1,7 @@
-﻿"use client";
+"use client";
 
+import type { WorkspaceRole } from "@/lib/auth/customer-policy";
+import { canViewWorkspaceModule } from "@/lib/auth/customer-policy";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
@@ -73,10 +75,11 @@ const adminGroups = [
 ];
 
 export function AppShell({
-  children,
+  children, workspaceRole,
 }: {
   children: React.ReactNode;
   active?: string;
+  workspaceRole?: WorkspaceRole;
 }) {
   const pathname = usePathname();
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -84,7 +87,11 @@ export function AppShell({
   const isAdmin =
     pathname === "/admin" || pathname.startsWith("/admin/");
 
-  const groups = isAdmin ? adminGroups : workspaceGroups;
+  const groups = isAdmin ? adminGroups : workspaceGroups.map(group=>({...group,items:group.items.filter(item=>{
+    if(item.href==="/admin")return workspaceRole==="platform";
+    if(item.href==="/dashboard")return true;
+    return canViewWorkspaceModule(workspaceRole??"viewer",item.href.split("/").pop());
+  })})).filter(group=>group.items.length>0);
 
   const current = groups
     .flatMap((group) => group.items)

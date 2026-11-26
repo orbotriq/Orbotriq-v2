@@ -1,7 +1,7 @@
 {
   "firestore": {
-    "rules": "legacy-v1/firestore.rules",
-    "indexes": "legacy-v1/firestore.indexes.json"
+    "rules": "firebase-v2/firestore.rules",
+    "indexes": "firebase-v2/firestore.indexes.json"
   },
   "emulators": {
     "auth": {

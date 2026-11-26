@@ -13,7 +13,8 @@ const metrics = [
 const modules = ["SEO & Analytics","GEO · AI Search","Social Publishing","Meta Ads","Competitor Intelligence","Growth Copilot","Client CRM","Projects & Tasks"];
 export default async function DashboardPage() {
   const decision=await workspaceAccess();if(decision.kind!=="allowed")return <WorkspaceRestricted decision={decision}/>;
-  return <AppShell><div className="content">
+  if(decision.identity.role!=="platform")return <AppShell workspaceRole={decision.identity.role}><div className="content"><div className="eyebrow">Customer workspace</div><h1>Your growth, connected.</h1><section className="card"><h2>{decision.identity.name}</h2><p className="sub">Organization: {decision.identity.orgId}</p><p>Role: {decision.identity.role}</p><p>Subscription status: {decision.identity.status}</p><p className="sub">Read-only workspace preview. Customer service modules are not yet migrated.</p></section></div></AppShell>;
+  return <AppShell workspaceRole={decision.identity.role}><div className="content">
     <div className="eyebrow">Workspace overview</div><h1>Your growth, connected.</h1>
     <p className="sub">Welcome to Orbotriq v2. Connect your existing Firebase data sources to activate live metrics.</p>
     <div className="grid-cards">{metrics.map(({label,value,note,icon:Icon})=><div className="card" key={label}><Icon size={19} color="#39c6d8"/><div className="metric">{value}</div><div style={{fontWeight:650,fontSize:13}}>{label}</div><div className="metric-label" style={{marginTop:7}}>{note}</div></div>)}</div>

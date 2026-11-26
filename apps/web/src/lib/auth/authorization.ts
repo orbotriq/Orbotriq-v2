@@ -16,7 +16,13 @@ export async function isApprovedUser(
     return false;
   }
 
+  const staging = process.env.ORBOTRIQ_FIREBASE_MODE === "staging";
+  if (staging && (token.uid !== "orbotriq-staging-admin" ||
+      token.email !== "staging-admin@orbotriq.test" ||
+      token.firebase.sign_in_provider !== "password")) return false;
+
   const account = await adminAuth().getUser(token.uid);
+  if (staging && (account.uid !== token.uid || account.email !== token.email)) return false;
 
   return (
     !account.disabled &&

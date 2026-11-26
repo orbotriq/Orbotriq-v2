@@ -1,0 +1,11 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // V2 is server-mediated. Firebase Admin SDK authorization belongs to
+    // the Next.js server, not to these client rules. No browser exceptions,
+    // including platform admins, until a reviewed client data contract exists.
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

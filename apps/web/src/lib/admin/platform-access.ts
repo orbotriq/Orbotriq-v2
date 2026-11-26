@@ -1,7 +1,9 @@
 import "server-only";
 import { FieldValue,type DocumentSnapshot } from "firebase-admin/firestore";
 import { adminDb } from "@/lib/firebase/admin";
-import { requirePlatformAdmin,requireUser } from "@/lib/auth/guard";
+import { requirePlatformAdmin } from "@/lib/auth/guard";
+import { requireWorkspaceIdentity } from "@/lib/auth/workspace-identity";
+import { canViewWorkspaceModule } from "@/lib/auth/customer-policy";
 import { isAdminWriteEnabled,requireAdminWrite } from "./write-guard";
 import { DEFAULT_ACCESS,resolveAccess,validateAccessUpdate,accessChanges,decideAccess,type WorkspaceModule } from "./platform-access-view";
 export const ACCESS_PATH="platform/v2AccessSettings";
@@ -16,10 +18,10 @@ export async function getAccessSettings(){
 }
 // Page-level enforcement, independent of the shared layout and navigation links.
 export async function workspaceAccess(module?:WorkspaceModule){
- await requireUser();
- if(!isAdminWriteEnabled())return decideAccess(DEFAULT_ACCESS,module);
- try{return decideAccess(accessFromSnapshot(await adminDb().doc(ACCESS_PATH).get()),module);}
- catch{return decideAccess(null,module);}
+ const identity=await requireWorkspaceIdentity();
+ const decision= !isAdminWriteEnabled()?decideAccess(DEFAULT_ACCESS,module):await (async()=>{try{return decideAccess(accessFromSnapshot(await adminDb().doc(ACCESS_PATH).get()),module);}catch{return decideAccess(null,module);}})();
+ if(decision.kind==="allowed"&&!canViewWorkspaceModule(identity.role,module))return {kind:"disabled" as const,message:"Your organization role does not allow access to this module.",identity};
+ return {...decision,identity};
 }
 export async function saveAccessSettings(input:unknown){
  const actor=await requireAdminWrite(),p=validateAccessUpdate(input);if(!p.ok)return fail(p.error);

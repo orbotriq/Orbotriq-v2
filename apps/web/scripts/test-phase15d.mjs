@@ -30,8 +30,8 @@ const tests=[
 let data,stamp,writes,allowed=true,guard=true,readError=false,reads=0;
 const ref={id:'access'},audit={id:'audit'},snap=()=>({exists:data!==undefined,updateTime:stamp,get:k=>data?.[k]});
 const db={doc:()=>ref,collection:()=>({doc:()=>audit}),runTransaction:async fn=>fn({get:async()=>snap(),create:(r,value)=>writes.push(['create',r,value]),update:(r,value)=>writes.push(['update',r,value])})};ref.get=async()=>{reads++;if(readError)throw Error('read failed');return snap()};
-const requireUser=async()=>{if(!allowed)throw Error('Denied');return {uid:'test-admin'}};
-const service=load('platform-access',{'server-only':{},'firebase-admin/firestore':{FieldValue:{serverTimestamp:()=>'<server timestamp>'}},'@/lib/firebase/admin':{adminDb:()=>db},'@/lib/auth/guard':{requirePlatformAdmin:requireUser,requireUser},'./write-guard':{isAdminWriteEnabled:()=>guard,requireAdminWrite:requireUser},'./platform-access-view':v});
+const requireUser=async()=>{if(!allowed)throw Error('Denied');return {uid:'test-admin',role:'platform'}};
+const service=load('platform-access',{'server-only':{},'firebase-admin/firestore':{FieldValue:{serverTimestamp:()=>'<server timestamp>'}},'@/lib/firebase/admin':{adminDb:()=>db},'@/lib/auth/guard':{requirePlatformAdmin:requireUser,requireUser},'@/lib/auth/workspace-identity':{requireWorkspaceIdentity:requireUser},'@/lib/auth/customer-policy':{canViewWorkspaceModule:()=>true},'./write-guard':{isAdminWriteEnabled:()=>guard,requireAdminWrite:requireUser},'./platform-access-view':v});
 const save=(access=p,version='missing')=>service.saveAccessSettings({access,version});
 tests.push(
  ['Create settings and audit',async()=>{data=undefined;stamp=undefined;writes=[];assert.equal((await save()).ok,true);assert.equal(writes.length,2);assert.deepEqual(writes[0][2].access,p);assert.equal(writes[0][2].phase15Test,true);assert.equal(writes[1][2].action,'settings.access_created');assert.equal(writes[1][2].by,'test-admin');assert.ok(!JSON.stringify(writes[1]).includes(p.message))}],

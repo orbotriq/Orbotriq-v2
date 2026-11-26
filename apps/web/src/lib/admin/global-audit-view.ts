@@ -7,9 +7,9 @@ const actions: Record<string, AuditCategory> = {
   "settings.business_created":"Settings", "settings.business_updated":"Settings",
   "org.created":"Organization", "org.created_by_admin":"Organization", "org.demo_created":"Organization", "org.updated_by_admin":"Organization",
   "org.suspend":"Organization", "org.reactivate":"Organization", "org.extend-demo":"Organization", "org.expire-demo":"Organization",
-  "password.changed":"User", "user.status_requested":"User", "user.status_changed":"User", "user.role_requested":"User", "user.role_changed":"User", "user.provision_requested":"User", "user.provisioned":"User",
+  "password.change_requested":"User", "password.changed":"User", "user.status_requested":"User", "user.status_changed":"User", "user.role_requested":"User", "user.role_changed":"User", "user.provision_requested":"User", "user.provisioned":"User",
   "plan.created":"Subscription", "plan.updated":"Subscription", "subscription.renewed":"Subscription",
-  "billing.profile_saved":"Billing", "invoice.issued":"Billing", "invoice.paid":"Billing", "invoice.voided":"Billing", "proforma.converted":"Billing",
+  "billing.profile_saved":"Billing", "invoice.issued":"Billing", "invoice.paid":"Billing", "invoice.cashfree_reviewed":"Billing", "invoice.voided":"Billing", "proforma.converted":"Billing",
   "lead.created":"Lead", "lead.updated":"Lead", "lead.followup_changed":"Lead", "lead.activity_recorded":"Lead", "lead.conversion_reserved":"Lead", "lead.conversion_provisioned":"Lead", "lead.converted":"Lead",
   "metaApp.saved":"Integration", "campaign.active":"Integration", "campaign.paused":"Integration", "review.replied":"Integration"
 };
@@ -19,8 +19,8 @@ const labels: Record<string, string> = {
   "settings.billing_created":"Billing settings created", "settings.billing_updated":"Billing settings updated",
   "settings.business_created":"Business settings created", "settings.business_updated":"Business settings updated",
   "org.created":"Organization created", "org.created_by_admin":"Organization created by administrator", "org.demo_created":"Demo created", "org.updated_by_admin":"Organization updated", "org.suspend":"Organization suspended", "org.reactivate":"Organization reactivated", "org.extend-demo":"Demo extended", "org.expire-demo":"Demo expired",
-  "password.changed":"Password changed", "user.status_requested":"User status change requested", "user.status_changed":"User status changed", "user.role_requested":"User role change requested", "user.role_changed":"User role changed", "user.provision_requested":"User provisioning requested", "user.provisioned":"User provisioned",
-  "plan.created":"Plan created", "plan.updated":"Plan updated", "subscription.renewed":"Subscription renewed", "billing.profile_saved":"Billing profile saved", "invoice.issued":"Invoice issued", "invoice.paid":"Invoice paid", "invoice.voided":"Invoice voided", "proforma.converted":"Proforma converted",
+  "password.change_requested":"Password setup requested", "password.changed":"Password changed", "user.status_requested":"User status change requested", "user.status_changed":"User status changed", "user.role_requested":"User role change requested", "user.role_changed":"User role changed", "user.provision_requested":"User provisioning requested", "user.provisioned":"User provisioned",
+  "plan.created":"Plan created", "plan.updated":"Plan updated", "subscription.renewed":"Subscription renewed", "billing.profile_saved":"Billing profile saved", "invoice.issued":"Invoice issued", "invoice.paid":"Invoice paid", "invoice.cashfree_reviewed":"Cashfree recovery reviewed", "invoice.voided":"Invoice voided", "proforma.converted":"Proforma converted",
   "lead.created":"Lead created", "lead.updated":"Lead updated", "lead.followup_changed":"Lead follow-up changed", "lead.activity_recorded":"Lead activity recorded", "lead.conversion_reserved":"Lead conversion reserved", "lead.conversion_provisioned":"Lead conversion provisioned", "lead.converted":"Lead converted",
   "metaApp.saved":"Meta configuration saved", "campaign.active":"Campaign activated", "campaign.paused":"Campaign paused", "review.replied":"Review replied"
 };
