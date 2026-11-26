@@ -1,0 +1,46 @@
+import "server-only";
+import { createHash } from "node:crypto";
+import { FieldValue } from "firebase-admin/firestore";
+import { adminDb } from "@/lib/firebase/admin";
+import { requireAdminWrite } from "@/lib/admin/write-guard";
+import { validLeadId } from "@/lib/admin/lead-view";
+import { testEmail, validateLead } from "@/lib/admin/lead-validation";
+const failure = (error: string, status = 400) => ({ ok: false as const, error, status });
+const emailKey = (email: string) => createHash("sha256").update(email.toLowerCase()).digest("hex");
+export async function saveLead(input: unknown, id?: string) {
+  const actor = await requireAdminWrite();
+  if (id !== undefined && !validLeadId(id)) return failure("Invalid lead ID.");
+  const parsed = validateLead(input, id !== undefined);
+  if (!parsed.ok) return failure(parsed.error);
+  const { fields, version } = parsed;
+  const db = adminDb(), leads = db.collection("leads");
+  const ref = id === undefined ? leads.doc() : leads.doc(id);
+  const management = db.collection("platform").doc("leadManagement");
+  const keys = management.collection("emailKeys"), key = keys.doc(emailKey(fields.email));
+  const audit = management.collection("auditLogs").doc();
+  return db.runTransaction(async tx => {
+    const doc = await tx.get(ref);
+    if (id !== undefined && (!doc.exists || !doc.updateTime)) return failure("Lead not found.", 404);
+    if (id === undefined && doc.exists) return failure("Lead ID collision. Retry.", 409);
+    if (id !== undefined && doc.updateTime && `${doc.updateTime.seconds}:${doc.updateTime.nanoseconds}` !== version) return failure("Lead changed. Reload before editing.", 409);
+    const old = doc.data() ?? {};
+    if (id !== undefined && old.conversion !== undefined) return failure("Converted or reserved leads cannot be edited.",409);
+    if (id !== undefined && !testEmail(old.email)) return failure("Only fictional .test leads can be edited.", 403);
+    const previousEmail = typeof old.email === "string" ? old.email.toLowerCase() : null;
+    const changed = Object.keys(fields).filter(k => old[k] !== fields[k as keyof typeof fields]);
+    if (id !== undefined && !changed.length) return { ok: true as const, leadId: ref.id, changed: false };
+    const claimed = await tx.get(key);
+    if (claimed.exists && claimed.get("leadId") !== ref.id) return failure("A lead already uses this email or its key requires review.", 409);
+    const duplicates = await tx.get(leads.where("email", "==", fields.email).limit(2));
+    if (duplicates.docs.some(d => d.id !== ref.id)) return failure("A lead already uses this email.", 409);
+    const previousKey = previousEmail && previousEmail !== fields.email ? keys.doc(emailKey(previousEmail)) : null;
+    const previousClaim = previousKey ? await tx.get(previousKey) : null;
+    if (previousClaim?.exists && previousClaim.get("leadId") !== ref.id) return failure("Previous email key requires review.", 409);
+    if (!claimed.exists) tx.create(key, { leadId: ref.id });
+    if (previousKey && previousClaim?.exists) tx.delete(previousKey);
+    if (id === undefined) tx.create(ref, { ...fields, createdAt: FieldValue.serverTimestamp(), createdBy: actor.uid, phase13Test: true });
+    else tx.update(ref, { ...fields, updatedAt: FieldValue.serverTimestamp(), updatedBy: actor.uid });
+    tx.create(audit, { action: id === undefined ? "lead.created" : "lead.updated", leadId: ref.id, by: actor.uid, at: FieldValue.serverTimestamp(), fields: changed, previousStatus: typeof old.status === "string" ? old.status.slice(0, 80) : null, nextStatus: fields.status });
+    return { ok: true as const, leadId: ref.id, changed: true };
+  });
+}
