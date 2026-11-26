@@ -6,6 +6,8 @@ import { requireAdminWrite } from "@/lib/admin/write-guard";
 import { validLeadId } from "@/lib/admin/lead-view";
 import { testEmail } from "@/lib/admin/lead-validation";
 import { eligibleConversionStatus, validateConversion } from "@/lib/admin/lead-conversion-view";
+import { loadProvisioningForWrite } from "./platform-provisioning";
+import { workspaceDefaults } from "./platform-provisioning-view";
 const fail = (error: string, status = 400) => ({ok:false as const,error,status});
 const review = () => fail("Conversion outcome requires administrator review. Do not retry or delete records.",409);
 export async function convertLead(id: string, input: unknown) {
@@ -26,6 +28,7 @@ export async function convertLead(id: string, input: unknown) {
   if (`${initial.updateTime.seconds}:${initial.updateTime.nanoseconds}` !== data.version) return fail("Lead changed. Reload before converting.",409);
   try { await auth.getUserByEmail(ownerEmail); return fail("An account already exists with this email.",409); }
   catch (error) { if ((error as {code?:string}).code !== "auth/user-not-found") throw error; }
+  const defaults=workspaceDefaults(await loadProvisioningForWrite());
   // Reserve once. Never automatically retry a partially completed cross-service operation.
   const reservation = {state:"reserved",orgId:org.id,ownerUid:uid};
   const previousStatus = initial.get("status") as string;
@@ -45,7 +48,7 @@ export async function convertLead(id: string, input: unknown) {
     await db.runTransaction(async tx => {
       const doc = await tx.get(ref);
       if (doc.get("conversion.state") !== "reserved" || doc.get("conversion.orgId") !== org.id || doc.get("email") !== email || doc.get("status") !== previousStatus) throw new Error("Reservation changed");
-      tx.create(org,{name:data.name,ownerUid:uid,ownerEmail,plan:"trial",status:"trialing",isDemo:false,trialEndsAt:Timestamp.fromMillis(Date.now()+data.trialDays*86400000),paidUntil:null,limits:{institutions:2,geoRuns:5},usage:{},institutionCount:0,notes:"",logoUrl:"",brandColor:"#22d3ee",createdBy:actor.uid,createdAt:FieldValue.serverTimestamp(),sourceLeadId:id});
+      tx.create(org,{name:data.name,ownerUid:uid,ownerEmail,plan:"trial",status:"trialing",isDemo:false,trialEndsAt:Timestamp.fromMillis(Date.now()+data.trialDays*86400000),paidUntil:null,limits:{institutions:defaults.brands,geoRuns:defaults.geo},usage:{},institutionCount:0,notes:"",logoUrl:"",brandColor:"#22d3ee",createdBy:actor.uid,createdAt:FieldValue.serverTimestamp(),sourceLeadId:id});
       tx.create(org.collection("members").doc(uid),{email:ownerEmail,role:"owner",mustChangePassword:true,createdAt:FieldValue.serverTimestamp()});
       tx.create(db.collection("users").doc(uid),{email:ownerEmail,displayName:data.name,orgId:org.id,createdAt:FieldValue.serverTimestamp()});
       tx.create(org.collection("auditLogs").doc(),{action:"org.created_by_admin",by:actor.uid,at:FieldValue.serverTimestamp(),sourceLeadId:id});

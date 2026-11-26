@@ -6,6 +6,9 @@ import { CreateOrganizationForm } from "@/components/create-organization-form";
 import { requirePlatformAdmin } from "@/lib/auth/guard";
 import { isAdminWriteEnabled } from "@/lib/admin/write-guard";
 
+import { getProvisioningSettings } from "@/lib/admin/platform-provisioning";
+import { workspaceDefaults } from "@/lib/admin/platform-provisioning-view";
+
 export const dynamic = "force-dynamic";
 
 export const metadata = {
@@ -19,6 +22,9 @@ export default async function CreateOrganizationPage() {
     notFound();
   }
 
+  const config=await getProvisioningSettings();
+  if(!config.provisioning)notFound();
+  const defaults=workspaceDefaults(config.provisioning,true);
   return (
     <AppShell>
       <Link
@@ -40,7 +46,7 @@ export default async function CreateOrganizationPage() {
         Local emulator mode.
       </p>
 
-      <CreateOrganizationForm demo />
+      <CreateOrganizationForm demo defaults={defaults} />
     </AppShell>
   );
 }

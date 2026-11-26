@@ -1,10 +1,13 @@
-﻿import Link from "next/link";
+import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
 import { AppShell } from "@/components/app-shell";
 import { CreateOrganizationForm } from "@/components/create-organization-form";
 import { requirePlatformAdmin } from "@/lib/auth/guard";
 import { isAdminWriteEnabled } from "@/lib/admin/write-guard";
+
+import { getProvisioningSettings } from "@/lib/admin/platform-provisioning";
+import { workspaceDefaults } from "@/lib/admin/platform-provisioning-view";
 
 export const dynamic = "force-dynamic";
 
@@ -19,6 +22,9 @@ export default async function CreateOrganizationPage() {
     notFound();
   }
 
+  const config=await getProvisioningSettings();
+  if(!config.provisioning)notFound();
+  const defaults=workspaceDefaults(config.provisioning,false);
   return (
     <AppShell>
       <Link
@@ -40,7 +46,7 @@ export default async function CreateOrganizationPage() {
         Local emulator mode.
       </p>
 
-      <CreateOrganizationForm />
+      <CreateOrganizationForm defaults={defaults} />
     </AppShell>
   );
 }

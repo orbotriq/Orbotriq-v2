@@ -10,6 +10,8 @@ import { followUpStatus } from "@/lib/admin/lead-followup";
 import { LeadActivityForm } from "@/components/lead-activity-form";
 import { LeadConvertForm } from "@/components/lead-convert-form";
 import { eligibleConversionStatus } from "@/lib/admin/lead-conversion-view";
+import { getProvisioningSettings } from "@/lib/admin/platform-provisioning";
+import { workspaceDefaults } from "@/lib/admin/platform-provisioning-view";
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Lead details" };
 export default async function LeadDetails({params}: {params: Promise<{leadId: string}>}) {
@@ -17,6 +19,7 @@ export default async function LeadDetails({params}: {params: Promise<{leadId: st
   const lead = await getLead(leadId);
   if (!lead) notFound();
   const activity = await getLeadActivity(lead.id);
+  const config=await getProvisioningSettings();
   const fields = [["Company", lead.company], ["Email", lead.email], ["Phone", lead.phone], ["Source", lead.source], ["Service interest", lead.serviceInterest], ["Status", LEAD_STATUS_LABELS[lead.status]], ["Received (IST)", leadDate(lead.createdAt)], ["Lead ID", lead.id], ["Follow-up (IST)", leadDate(lead.followUpAt)], ["Follow-up status", followUpStatus(lead.followUpAt, Date.now())]];
   return <AppShell><Link className="org-back" href="/admin/leads">Back to leads</Link><div className="eyebrow">Lead details</div><h1>{lead.name}</h1>
     {isAdminWriteEnabled() && testEmail(lead.email) && lead.conversion.state === "none" && <Link className="btn primary" href={`/admin/leads/${encodeURIComponent(lead.id)}/edit`}>Edit test lead</Link>}
@@ -25,7 +28,7 @@ export default async function LeadDetails({params}: {params: Promise<{leadId: st
     </section>
     {lead.conversion.state === "complete" && lead.conversion.orgId && <section className="card"><h2>Converted organization</h2><Link href={`/admin/organizations/${encodeURIComponent(lead.conversion.orgId)}`}>View organization</Link></section>}
     {(lead.conversion.state === "pending" || lead.conversion.state === "review") && <section className="card"><h2>Conversion requires review</h2><p>Provisioning may be incomplete. Do not retry or remove records. Organization reference: {lead.conversion.orgId || "Unknown"}</p></section>}
-    {isAdminWriteEnabled() && testEmail(lead.email) && lead.conversion.state === "none" && eligibleConversionStatus(lead.status) && <LeadConvertForm key={`convert-${lead.version}`} id={lead.id} version={lead.version} name={lead.company || lead.name} email={lead.email}/>}
+    {isAdminWriteEnabled() && testEmail(lead.email) && lead.conversion.state === "none" && eligibleConversionStatus(lead.status) && config.provisioning && <LeadConvertForm key={`convert-${lead.version}`} id={lead.id} version={lead.version} name={lead.company || lead.name} email={lead.email} defaults={workspaceDefaults(config.provisioning)}/>}
     {isAdminWriteEnabled() && testEmail(lead.email) && (lead.conversion.state === "none" || lead.conversion.state === "complete") && <LeadActivityForm key={`activity-${lead.version}`} id={lead.id} version={lead.version} followUpAt={lead.followUpAt}/>}
     <section className="card" style={{marginTop:20}}><h2>Activity timeline</h2><p className="sub">Internal records in reverse chronological order (IST). {activity.limited && "History is limited to 100 displayed events from up to 200 matched records; older or other events may be omitted."}</p>
     {!activity.events.length && <p className="sub">No activity recorded.</p>}

@@ -1,5 +1,8 @@
+import { workspaceAccess } from "@/lib/admin/platform-access";
+import { WorkspaceRestricted } from "@/components/workspace-restricted";
+export const dynamic="force-dynamic";
 import { AppShell } from "@/components/app-shell";
-import { Activity, ArrowUpRight, BarChart3, Globe2, Search, Users } from "lucide-react";
+import { Activity, ArrowUpRight, Globe2, Search, Users } from "lucide-react";
 
 const metrics = [
   { label: "Tracked brands", value: "—", note: "Connect your first brand", icon: Globe2 },
@@ -8,7 +11,8 @@ const metrics = [
   { label: "Active clients", value: "—", note: "CRM setup pending", icon: Users },
 ];
 const modules = ["SEO & Analytics","GEO · AI Search","Social Publishing","Meta Ads","Competitor Intelligence","Growth Copilot","Client CRM","Projects & Tasks"];
-export default function DashboardPage() {
+export default async function DashboardPage() {
+  const decision=await workspaceAccess();if(decision.kind!=="allowed")return <WorkspaceRestricted decision={decision}/>;
   return <AppShell><div className="content">
     <div className="eyebrow">Workspace overview</div><h1>Your growth, connected.</h1>
     <p className="sub">Welcome to Orbotriq v2. Connect your existing Firebase data sources to activate live metrics.</p>

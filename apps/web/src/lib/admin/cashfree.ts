@@ -1,11 +1,14 @@
 import 'server-only';
+import { PROVISIONING_PATH, provisioningFromSnapshot } from './platform-provisioning';
+import { gatewayStatus } from './platform-provisioning-view';
+import { validTaxInvoiceId } from './platform-billing-view';
 import { applyRenewal } from './renewal';
 import { createHash } from 'node:crypto';
 import { FieldValue } from 'firebase-admin/firestore';
 import { z } from 'zod';
 import { adminDb } from '@/lib/firebase/admin';
 import { requireAdminWrite, isAdminWriteEnabled } from './write-guard';
-const inputSchema=z.object({action:z.enum(['create','verify']),orgId:z.string().regex(/^test-[a-zA-Z0-9_-]{1,95}$/),invoiceId:z.string().regex(/^TST-\d{2}-\d{2}-\d{4}$/)}).strict();
+const inputSchema=z.object({action:z.enum(['create','verify']),orgId:z.string().regex(/^test-[a-zA-Z0-9_-]{1,95}$/),invoiceId:z.string().refine(validTaxInvoiceId)}).strict();
 const orderSchema=z.object({order_id:z.string(),order_amount:z.number(),order_currency:z.string(),order_status:z.string(),payment_session_id:z.string().optional()});
 const paymentsSchema=z.array(z.object({cf_payment_id:z.union([z.string(),z.number()]),payment_status:z.string(),payment_amount:z.number(),payment_currency:z.string()}));
 async function api(path:string,body?:object){
@@ -21,10 +24,10 @@ export async function cashfree(input:unknown){
 }
 async function processOrder(input:unknown,actorUid:string){
  if(!isAdminWriteEnabled())throw new Error('Writes disabled');
- const d=inputSchema.parse(input);const db=adminDb();const org=db.collection('orgs').doc(d.orgId);const ref=org.collection('invoices').doc(d.invoiceId);
+ const d=inputSchema.parse(input);if(!gatewayStatus(true,process.env.CASHFREE_ENV,process.env.CASHFREE_APP_ID,process.env.CASHFREE_SECRET_KEY).ready)throw new Error('Sandbox credentials required');const db=adminDb();const org=db.collection('orgs').doc(d.orgId);const ref=org.collection('invoices').doc(d.invoiceId);
  const orderId='orb_'+createHash('sha256').update(`${d.orgId}/${d.invoiceId}`).digest('hex').slice(0,40);
  const orderRef=db.collection('phase12CashfreeOrders').doc(orderId);
- const amount=await db.runTransaction(async tx=>{const [o,s,r]=await Promise.all([tx.get(org),tx.get(ref),tx.get(orderRef)]);const n=s.get('totalPaise');if(!o.exists||o.get('isDemo')===true||s.get('phase12Test')!==true||s.get('kind')!=='tax'||!Number.isSafeInteger(n)||n<100||n>1000000000)throw new Error('Invoice unavailable');
+ const amount=await db.runTransaction(async tx=>{if(d.action==='create'&&!provisioningFromSnapshot(await tx.get(db.doc(PROVISIONING_PATH))).cashfreeCheckoutEnabled)throw new Error('New sandbox checkout disabled');const [o,s,r]=await Promise.all([tx.get(org),tx.get(ref),tx.get(orderRef)]);const n=s.get('totalPaise');if(!o.exists||o.get('isDemo')===true||s.get('phase12Test')!==true||s.get('kind')!=='tax'||!Number.isSafeInteger(n)||n<100||n>1000000000)throw new Error('Invoice unavailable');
  if(s.get('status')!=='issued'&&!(d.action==='verify'&&s.get('status')==='paid'&&s.get('cashfreeOrderId')===orderId))throw new Error('Invoice unavailable');
  if(r.exists&&(r.get('amountPaise')!==n||r.get('orgId')!==d.orgId||r.get('invoiceId')!==d.invoiceId))throw new Error('Order conflict');
  if(d.action==='verify'&&!r.exists)throw new Error('Create order first');

@@ -5,6 +5,9 @@ import { z } from "zod";
 import { adminAuth, adminDb } from "@/lib/firebase/admin";
 import { requireAdminWrite } from "@/lib/admin/write-guard";
 
+import { loadProvisioningForWrite } from "./platform-provisioning";
+import { workspaceDefaults } from "./platform-provisioning-view";
+
 const schema = z.object({
   name: z.string().trim().min(2).max(80),
   ownerEmail: z.string()
@@ -42,6 +45,8 @@ export async function createOrganization(input: unknown, demo = false) {
   ) {
     throw new Error("Unsafe provisioning project.");
   }
+
+  const defaults = workspaceDefaults(await loadProvisioningForWrite(), demo);
 
   try {
     await auth.getUserByEmail(ownerEmail);
@@ -98,8 +103,8 @@ export async function createOrganization(input: unknown, demo = false) {
       ),
       paidUntil: null,
       limits: {
-        institutions: demo ? 5 : 2,
-        geoRuns: demo ? 50 : 5,
+        institutions: defaults.brands,
+        geoRuns: defaults.geo,
       },
       usage: {},
       institutionCount: 0,

@@ -1,4 +1,4 @@
-﻿import assert from "node:assert/strict";
+import assert from "node:assert/strict";
 import fs from "node:fs";
 import vm from "node:vm";
 import ts from "typescript";
@@ -164,6 +164,10 @@ function setup(mode = "success") {
 
     require(name) {
       switch (name) {
+        case "./platform-provisioning":
+          return {loadProvisioningForWrite: async()=>({trialDays:14,trialBrands:2,trialGeo:5,demoDays:14,demoBrands:5,demoGeo:50,cashfreeCheckoutEnabled:true})};
+        case "./platform-provisioning-view":
+          return {workspaceDefaults:(p,demo)=>demo?{days:p.demoDays,brands:p.demoBrands,geo:p.demoGeo}:{days:p.trialDays,brands:p.trialBrands,geo:p.trialGeo}};
         case "server-only":
           return {};
 

@@ -5,12 +5,12 @@ import { useRef, useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import { Building2, ShieldCheck, Plus } from "lucide-react";
 
-export function CreateOrganizationForm({demo=false}:{demo?:boolean}) {
+export function CreateOrganizationForm({demo=false,defaults}:{demo?:boolean;defaults:{days:number;brands:number;geo:number}}) {
   const router = useRouter();
 
   const [name, setName] = useState("");
   const [ownerEmail, setOwnerEmail] = useState("");
-  const [trialDays, setTrialDays] = useState("14");
+  const [trialDays, setTrialDays] = useState(String(defaults.days));
   const [notes, setNotes] = useState("");
   const [pending, setPending] = useState(false);
   const [error, setError] = useState("");
@@ -115,11 +115,11 @@ export function CreateOrganizationForm({demo=false}:{demo?:boolean}) {
           <div className="org-create-grid">
             <label>
               Subscription plan
-              <input value="Trial" readOnly />
+              <input value={demo?"Demo":"Trial"} readOnly />
             </label>
 
             <label>
-              Trial validity (days)
+              {demo?"Demo":"Trial"} validity (days)
               <input
                 type="number"
                 required
@@ -133,17 +133,17 @@ export function CreateOrganizationForm({demo=false}:{demo?:boolean}) {
 
             <label>
               Brand limit
-              <input value="2" readOnly />
+              <input value={defaults.brands} readOnly />
             </label>
 
             <label>
               GEO run limit
-              <input value="5" readOnly />
+              <input value={defaults.geo} readOnly />
             </label>
           </div>
 
-          <span className="org-status status-trialing">
-            Trialing
+          <span className={`org-status ${demo?"status-demo":"status-trialing"}`}>
+            {demo?"Demo":"Trialing"}
           </span>
         </section>
 

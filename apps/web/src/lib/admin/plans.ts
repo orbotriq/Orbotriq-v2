@@ -3,6 +3,9 @@ import "server-only";
 import { adminDb } from "@/lib/firebase/admin";
 import { requirePlatformAdmin } from "@/lib/auth/guard";
 
+import { getProvisioningSettings } from "./platform-provisioning";
+import { isAdminWriteEnabled } from "./write-guard";
+
 export type SubscriptionPlan = {
   id: string;
   name: string;
@@ -70,16 +73,17 @@ export async function getSubscriptionPlans():
       .get(),
   ]);
 
+  const defaults=isAdminWriteEnabled()?(await getProvisioningSettings()).provisioning:null;
   const plans = new Map<string, SubscriptionPlan>();
 
   plans.set(
     "trial",
-    makePlan("trial", "Trial", "built-in", 2, 5)
+    makePlan("trial", "Trial", "built-in", defaults?.trialBrands ?? (isAdminWriteEnabled()?null:2), defaults?.trialGeo ?? (isAdminWriteEnabled()?null:5))
   );
 
   plans.set(
     "demo",
-    makePlan("demo", "Demo", "built-in", 5, 50)
+    makePlan("demo", "Demo", "built-in", defaults?.demoBrands ?? (isAdminWriteEnabled()?null:5), defaults?.demoGeo ?? (isAdminWriteEnabled()?null:50))
   );
 
   for (const doc of planSnapshot.docs) {
