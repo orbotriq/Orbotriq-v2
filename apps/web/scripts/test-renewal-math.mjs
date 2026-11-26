@@ -1,0 +1,10 @@
+import assert from 'node:assert/strict';
+import ts from 'typescript';
+import fs from 'node:fs';
+import vm from 'node:vm';
+const exports={};vm.runInNewContext(ts.transpileModule(fs.readFileSync(new URL('../src/lib/admin/renewal-math.ts',import.meta.url),'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS}}).outputText,{exports});
+const f=exports.renewalExpiry,D=86400000;
+assert.equal(f(100,200,30),200+30*D);assert.equal(f(200,100,1),200+D);
+for(const days of [0,-1,91,1.5,NaN])assert.throws(()=>f(100,200,days));
+assert.throws(()=>f(100,-1,1));assert.throws(()=>f(100,253402300799999,1));
+console.log('9 renewal arithmetic assertions passed');

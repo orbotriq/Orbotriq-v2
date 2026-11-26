@@ -1,0 +1,15 @@
+import assert from 'node:assert/strict';
+import ts from 'typescript';
+import fs from 'node:fs';
+const source=fs.readFileSync(new URL('../src/lib/admin/billing-math.ts',import.meta.url),'utf8');
+const js=ts.transpileModule(source,{compilerOptions:{module:ts.ModuleKind.CommonJS}}).outputText;
+const exports={};new Function('exports',js)(exports);
+const {price}=exports;
+assert.equal(price(100000,18,true).cgstPaise,9000);
+assert.equal(price(100000,18,true).sgstPaise,9000);
+assert.equal(price(100000,18,false).igstPaise,18000);
+assert.equal(price(100000,18,false).totalPaise,118000);
+assert.equal(price(100000,0,true).totalPaise,100000);
+for(const a of [0,-1,1.5,Infinity,1000000001])assert.throws(()=>price(a,18,true));
+assert.throws(()=>price(100,17,true));
+console.log('11 billing arithmetic assertions passed');
