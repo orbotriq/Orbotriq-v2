@@ -1,19 +1,58 @@
-# Phase 16E1: cloud Firebase access deliberately disabled.
-# Do not deploy this configuration. Replace only after isolated staging review.
+# Phase 16F4: isolated read-only staging
 runConfig:
   cpu: 1
   memoryMiB: 512
   minInstances: 0
-  maxInstances: 10
-
+  maxInstances: 1
 env:
-  - variable: ORBOTRIQ_FIREBASE_MODE
-    value: disabled
+  - variable: NEXT_PUBLIC_FIREBASE_MODE
+    value: "staging"
     availability:
       - BUILD
       - RUNTIME
-  - variable: NEXT_PUBLIC_FIREBASE_MODE
-    value: disabled
+  - variable: NEXT_PUBLIC_FIREBASE_PROJECT_ID
+    value: "orbotriq-v2-staging"
     availability:
       - BUILD
+      - RUNTIME
+  - variable: NEXT_PUBLIC_FIREBASE_API_KEY
+    value: "AIzaSyA4Ysg7eS7F7razXEF90x6NCnxN_rEkdLo"
+    availability:
+      - BUILD
+      - RUNTIME
+  - variable: NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN
+    value: "orbotriq-v2-staging.firebaseapp.com"
+    availability:
+      - BUILD
+      - RUNTIME
+  - variable: NEXT_PUBLIC_FIREBASE_APP_ID
+    value: "1:587902200294:web:698daec9d83ec460934e27"
+    availability:
+      - BUILD
+      - RUNTIME
+  - variable: NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID
+    value: "587902200294"
+    availability:
+      - BUILD
+      - RUNTIME
+  - variable: NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET
+    value: "orbotriq-v2-staging.firebasestorage.app"
+    availability:
+      - BUILD
+      - RUNTIME
+  - variable: ORBOTRIQ_FIREBASE_MODE
+    value: "staging"
+    availability:
+      - RUNTIME
+  - variable: FIREBASE_PROJECT_ID
+    value: "orbotriq-v2-staging"
+    availability:
+      - RUNTIME
+  - variable: ORBOTRIQ_STAGING_RUNTIME
+    value: "approved-readonly"
+    availability:
+      - RUNTIME
+  - variable: CASHFREE_ENV
+    value: "disabled"
+    availability:
       - RUNTIME
